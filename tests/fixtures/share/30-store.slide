@@ -1,0 +1,4 @@
+[Slide]
+Order=30
+Title=Store
+Action=app:dev.sinty.store

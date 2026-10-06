@@ -1,0 +1,7 @@
+[Slide]
+Order=90
+Title=Help Is Always There
+Body=Help has guides for the desktop and your apps, and the manual of every command.
+Scene=help
+Action=help:singularity
+ActionLabel=Open Help

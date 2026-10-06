@@ -1,0 +1,5 @@
+[Slide]
+Order=10
+Title=Welcome to Singularity
+Body=Here is a short look at how the desktop works on {os}. It takes a minute.
+Scene=welcome

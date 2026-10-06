@@ -1,0 +1,5 @@
+[Slide]
+Order=40
+Title=The Dock
+Body=Your favorite apps and the open ones live here. A dot marks a running app, and a right-click keeps it in the dock or opens a new window.
+Scene=dock

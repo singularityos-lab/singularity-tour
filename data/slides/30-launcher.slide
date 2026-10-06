@@ -1,0 +1,5 @@
+[Slide]
+Order=30
+Title=Find Anything
+Body=Press Super to open the launcher and start typing the name of an app, a file or a setting. Enter opens the first result.
+Scene=launcher

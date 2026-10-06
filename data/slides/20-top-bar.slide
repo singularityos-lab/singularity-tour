@@ -1,0 +1,5 @@
+[Slide]
+Order=20
+Title=The Top Bar
+Body=The menus of the app you are using sit on the left. The clock opens the calendar, the bell your notifications, and the status icons the quick settings.
+Scene=top-bar

@@ -1,0 +1,7 @@
+[Slide]
+Order=80
+Title=Make It Yours
+Body=Choose a wallpaper, an accent color and a light or dark style, and set up the dock and the top bar the way you like.
+Scene=settings
+Action=settings:desktop
+ActionLabel=Open Settings

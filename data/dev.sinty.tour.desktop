@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Tour
+Comment=A short look at how the desktop works
+Exec=singularity-tour
+Icon=dev.sinty.tour
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=welcome;introduction;guide;tutorial;first;
+StartupWMClass=dev.sinty.tour

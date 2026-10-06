@@ -1,0 +1,5 @@
+[Slide]
+Order=60
+Title=Workspaces
+Body=Keep tasks apart on separate desktops. Super+W shows them all, and a sideways swipe on the touchpad moves between them.
+Scene=workspaces

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/dev/sinty/tour/slides">
+    <file alias="10-welcome.slide">slides/10-welcome.slide</file>
+    <file alias="20-top-bar.slide">slides/20-top-bar.slide</file>
+    <file alias="30-launcher.slide">slides/30-launcher.slide</file>
+    <file alias="40-dock.slide">slides/40-dock.slide</file>
+    <file alias="50-windows.slide">slides/50-windows.slide</file>
+    <file alias="60-workspaces.slide">slides/60-workspaces.slide</file>
+    <file alias="70-store.slide">slides/70-store.slide</file>
+    <file alias="80-settings.slide">slides/80-settings.slide</file>
+    <file alias="90-help.slide">slides/90-help.slide</file>
+    <file alias="99-done.slide">slides/99-done.slide</file>
+  </gresource>
+</gresources>

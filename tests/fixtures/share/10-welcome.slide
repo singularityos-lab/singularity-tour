@@ -1,0 +1,6 @@
+[Slide]
+Order=10
+Title=Welcome
+Title[it]=Benvenuto
+Body=Running on {os}.
+Scene=welcome

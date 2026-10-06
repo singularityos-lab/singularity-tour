@@ -1,0 +1,5 @@
+[Slide]
+Order=50
+Title=Arrange Your Windows
+Body=Super with the arrow keys snaps a window to half of the screen, and Super+R arranges every window of the workspace in a grid.
+Scene=windows

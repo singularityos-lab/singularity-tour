@@ -1,0 +1,7 @@
+[Slide]
+Order=25
+Title=Our Repositories
+Body=Extra software from the distribution.
+Image=repos.png
+Action=https://example.org
+ActionLabel=Learn More

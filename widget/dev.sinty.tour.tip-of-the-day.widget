@@ -1,0 +1,8 @@
+[Widget]
+Id=tour.tip-of-the-day
+ProviderId=dev.sinty.tour
+Name=Tip of the Day
+IconName=dialog-information-symbolic
+Sizes=2x1
+Module=libsingularity-tour-widget.so
+ModuleSymbol=singularity_tour_widget_new

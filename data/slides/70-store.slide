@@ -1,0 +1,7 @@
+[Slide]
+Order=70
+Title=Get More Apps
+Body=Store has apps for everything, with their screenshots and the permissions they ask for before you install them.
+Scene=store
+Action=app:dev.sinty.store
+ActionLabel=Open Store
