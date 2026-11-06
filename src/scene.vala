@@ -254,6 +254,12 @@ namespace Singularity.Apps.Tour {
                     glow_background (cr);
                     done (cr);
                     break;
+                case "assistant":
+                    desktop (cr, "Notes");
+                    window (cr, 40, 70, 300, 250, "write");
+                    assistant (cr);
+                    highlight (cr, 352, 30, 268, 222, 14);
+                    break;
                 default:
                     glow_background (cr);
                     break;
@@ -644,6 +650,38 @@ namespace Singularity.Apps.Tour {
                     cr.stroke ();
                 }
                 pill (cr, cx - 20, cy + 34, 40, 5, 0xffffff, i == 0 ? 0.9 : 0.55);
+            }
+        }
+
+        private void assistant (Cairo.Context cr) {
+            double x = 360, y = 38, w = 252;
+            rrect (cr, x + 2, y + 6, w, 206, 14);
+            rgb (cr, 0x000000, 0.3);
+            cr.fill ();
+            rrect (cr, x, y, w, 206, 14);
+            rgb (cr, 0x1f2229, 0.97);
+            cr.fill ();
+            rrect (cr, x + 10, y + 10, w - 20, 26, 8);
+            rgb (cr, 0x2e323a);
+            cr.fill ();
+            text (cr, "add milk to my shopping list", x + 20, y + 23, 9, 0xffffff, 0.95);
+            double t = 0.5 + 0.5 * Math.sin (phase * 2 * Math.PI);
+            cr.rectangle (x + 176, y + 16, 1.2, 14);
+            set_accent (cr, t);
+            cr.fill ();
+            for (int i = 0; i < 2; i++) {
+                double cy = y + 48 + i * 74;
+                rrect (cr, x + 10, cy, w - 20, 64, 10);
+                rgb (cr, 0xffffff, i == 0 ? 0.1 : 0.06);
+                cr.fill ();
+                rrect (cr, x + 20, cy + 12, 28, 28, 7);
+                rgb (cr, i == 0 ? 0xf0a531 : 0x2fb67c);
+                cr.fill ();
+                pill (cr, x + 58, cy + 16, i == 0 ? 96 : 120, 7, 0xffffff, 0.9);
+                pill (cr, x + 58, cy + 30, i == 0 ? 150 : 110, 5, 0xffffff, 0.5);
+                rrect (cr, x + w - 70, cy + 40, 50, 16, 8);
+                set_accent (cr, i == 0 ? 1 : 0.35);
+                cr.fill ();
             }
         }
 
