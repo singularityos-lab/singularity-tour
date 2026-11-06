@@ -57,53 +57,78 @@ namespace Singularity.Apps.Tour {
             return out_s;
         }
 
-        private async void load () {
+        private class Shots : Object {
+            public Cairo.ImageSurface? panel;
+            public Cairo.ImageSurface? dock;
+            public Cairo.ImageSurface? wallpaper;
+        }
+
+        private static Cairo.ImageSurface cover (Gdk.Texture tex) {
+            double k = double.max (1280.0 / tex.width, 800.0 / tex.height);
+            var big = to_surface (tex);
+            var small = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1280, 800);
+            var cr = new Cairo.Context (small);
+            cr.translate ((1280 - tex.width * k) / 2, (800 - tex.height * k) / 2);
+            cr.scale (k, k);
+            cr.set_source_surface (big, 0, 0);
+            cr.get_source ().set_filter (Cairo.Filter.GOOD);
+            cr.paint ();
+            return small;
+        }
+
+        private static Shots capture (Singularity.Shell.ShellService shell) {
+            var shots = new Shots ();
             try {
-                Singularity.Shell.ShellService shell = yield Bus.get_proxy (BusType.SESSION, "dev.sinty.desktop", "/dev/sinty/Shell");
                 string p = shell.snapshot_component ("panel");
                 if (p != "") {
-                    var tex = Gdk.Texture.from_filename (p);
-                    panel = to_surface (tex);
-                    int scale = 1;
-                    var display = Gdk.Display.get_default ();
-                    var monitors = display.get_monitors ();
-                    if (monitors.get_n_items () > 0) {
-                        var mon = (Gdk.Monitor) monitors.get_item (0);
-                        scale = mon.scale_factor;
-                        screen_width = mon.geometry.width;
-                    }
-                    panel_scale = scale;
-                    if (screen_width <= 0) screen_width = panel.get_width () / (double) scale;
+                    shots.panel = to_surface (Gdk.Texture.from_filename (p));
                     FileUtils.remove (p);
                 }
                 string d = shell.snapshot_component ("dock");
                 if (d != "") {
-                    dock = crop (to_surface (Gdk.Texture.from_filename (d)));
+                    shots.dock = crop (to_surface (Gdk.Texture.from_filename (d)));
                     FileUtils.remove (d);
                 }
             } catch (Error e) {
-                panel = null;
-                dock = null;
+                shots.panel = null;
+                shots.dock = null;
             }
             try {
-                Singularity.Shell.ShellService shell = yield Bus.get_proxy (BusType.SESSION, "dev.sinty.desktop", "/dev/sinty/Shell");
                 string b = shell.snapshot_component ("background");
                 if (b != "") {
                     var tex = Gdk.Texture.from_filename (b);
                     FileUtils.remove (b);
-                    double cover = double.max (1280.0 / tex.width, 800.0 / tex.height);
-                    var big = to_surface (tex);
-                    var small = new Cairo.ImageSurface (Cairo.Format.ARGB32, 1280, 800);
-                    var cr = new Cairo.Context (small);
-                    cr.translate ((1280 - tex.width * cover) / 2, (800 - tex.height * cover) / 2);
-                    cr.scale (cover, cover);
-                    cr.set_source_surface (big, 0, 0);
-                    cr.get_source ().set_filter (Cairo.Filter.GOOD);
-                    cr.paint ();
-                    wallpaper = small;
+                    shots.wallpaper = cover (tex);
                 }
             } catch (Error e) {
-                wallpaper = null;
+                shots.wallpaper = null;
+            }
+            return shots;
+        }
+
+        private async void load () {
+            Shots shots;
+            try {
+                Singularity.Shell.ShellService shell = yield Bus.get_proxy (BusType.SESSION, "dev.sinty.desktop", "/dev/sinty/Shell");
+                shots = yield Singularity.Async.run<Shots> ((c) => capture (shell), Singularity.Async.Qos.USER);
+            } catch (Error e) {
+                loaded ();
+                return;
+            }
+            panel = shots.panel;
+            dock = shots.dock;
+            wallpaper = shots.wallpaper;
+            if (panel != null) {
+                int scale = 1;
+                var display = Gdk.Display.get_default ();
+                var monitors = display.get_monitors ();
+                if (monitors.get_n_items () > 0) {
+                    var mon = (Gdk.Monitor) monitors.get_item (0);
+                    scale = mon.scale_factor;
+                    screen_width = mon.geometry.width;
+                }
+                panel_scale = scale;
+                if (screen_width <= 0) screen_width = panel.get_width () / (double) scale;
             }
             loaded ();
         }
