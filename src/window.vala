@@ -10,6 +10,7 @@ namespace Singularity.Apps.Tour {
         private Label counter;
         private SimpleAction previous_action;
         private SimpleAction next_action;
+        private AgentSetup? agent_setup = null;
 
         public TourWindow (Gtk.Application app) {
             Object (application: app, title: _("Tour"));
@@ -29,6 +30,7 @@ namespace Singularity.Apps.Tour {
             island = new Singularity.Widgets.StepIsland (names);
             island.back_clicked.connect (() => go (current - 1));
             island.next_clicked.connect (() => {
+                if (agent_setup != null && slides[current].setup == "agent") agent_setup.commit ();
                 if (current >= slides.size - 1) close ();
                 else go (current + 1);
             });
@@ -113,12 +115,29 @@ namespace Singularity.Apps.Tour {
             island.back_visible = index > 0;
             previous_action.set_enabled (index > 0);
             next_action.set_enabled (index < slides.size - 1);
-            if (index == 0) island.next_label = _("Start the Tour");
-            else if (index == slides.size - 1) island.next_label = _("Done");
+            update_next ();
+        }
+
+        private void update_next () {
+            if (current == 0) island.next_label = _("Start the Tour");
+            else if (current == slides.size - 1) island.next_label = _("Done");
+            else if (slides[current].setup == "agent" && agent_setup != null && !agent_setup.verified) island.next_label = _("Skip");
             else island.next_label = _("Next");
         }
 
+        private void skip_group () {
+            string group = slides[current].group;
+            if (group == "") {
+                go (current + 1);
+                return;
+            }
+            int target = current;
+            while (target < slides.size - 1 && slides[target].group == group) target++;
+            go (target);
+        }
+
         private Widget page (Slide slide) {
+            if (slide.setup == "agent") return setup_page (slide);
             var col = new Box (Orientation.VERTICAL, 0);
             col.valign = Align.FILL;
             col.margin_start = 40;
@@ -149,20 +168,66 @@ namespace Singularity.Apps.Tour {
                 col.append (body);
             }
 
-            if (slide.action != "") {
-                var btn = new Button.with_label (slide.action_label);
-                btn.add_css_class ("tour-action");
-                btn.halign = Align.CENTER;
-                btn.clicked.connect (() => run_action (slide.action));
-                col.append (btn);
-            }
+            var actions = new Box (Orientation.HORIZONTAL, 12);
+            actions.halign = Align.CENTER;
+            actions.homogeneous = true;
+            if (slide.action != "") actions.append (action_button (slide.action_label, slide.action));
+            if (slide.secondary_action != "") actions.append (action_button (slide.secondary_label, slide.secondary_action));
+            if (actions.get_first_child () != null) col.append (actions);
 
             return new Singularity.Widgets.Clamp (col, 640 + 80);
         }
 
+        private Button action_button (string label, string action) {
+            var btn = new Button.with_label (label);
+            btn.add_css_class ("tour-action");
+            btn.clicked.connect (() => run_action (action));
+            return btn;
+        }
+
+        private Widget setup_page (Slide slide) {
+            var col = new Box (Orientation.VERTICAL, 0);
+            col.margin_start = 40;
+            col.margin_end = 40;
+            col.margin_top = 24;
+            col.margin_bottom = 110;
+            Singularity.Widgets.apply_titlebar_inset (col);
+
+            var title = new Label (slide.title);
+            title.add_css_class ("tour-title");
+            title.wrap = true;
+            title.justify = Justification.CENTER;
+            col.append (title);
+
+            if (slide.body != "") {
+                var body = new Label (slide.body);
+                body.add_css_class ("tour-body");
+                body.wrap = true;
+                body.justify = Justification.CENTER;
+                body.max_width_chars = 56;
+                body.halign = Align.CENTER;
+                body.margin_bottom = 18;
+                col.append (body);
+            }
+
+            agent_setup = new AgentSetup ();
+            agent_setup.verified_changed.connect (update_next);
+            col.append (agent_setup);
+
+            var scroll = new ScrolledWindow ();
+            scroll.hscrollbar_policy = PolicyType.NEVER;
+            scroll.vexpand = true;
+            scroll.child = new Singularity.Widgets.Clamp (col, 560 + 80);
+            return scroll;
+        }
+
         private void run_action (string action) {
             try {
-                if (action.has_prefix ("app:")) {
+                if (action == "skip") {
+                    skip_group ();
+                } else if (action.has_prefix ("slide:")) {
+                    show_slide (action.substring (6));
+                } else if (action.has_prefix ("app:")) {
                     string id = action.substring (4);
                     if (!id.has_suffix (".desktop")) id += ".desktop";
                     var info = new GLib.DesktopAppInfo (id);

@@ -10,6 +10,10 @@ namespace Singularity.Apps.Tour {
         public string icon = "";
         public string action = "";
         public string action_label = "";
+        public string secondary_action = "";
+        public string secondary_label = "";
+        public string group = "";
+        public string setup = "";
 
         public static Slide? load (string path) {
             var kf = new KeyFile ();
@@ -35,6 +39,7 @@ namespace Singularity.Apps.Tour {
         private static Slide? parse (KeyFile kf, string name, string base_dir) {
             try {
                 if (kf.has_key ("Slide", "Hidden") && kf.get_boolean ("Slide", "Hidden")) return null;
+                if (kf.has_key ("Slide", "TryExec") && Environment.find_program_in_path (kf.get_string ("Slide", "TryExec")) == null) return null;
                 var slide = new Slide ();
                 slide.id = name.substring (0, name.length - ".slide".length);
                 slide.title = expand (kf.get_locale_string ("Slide", "Title", null));
@@ -52,6 +57,12 @@ namespace Singularity.Apps.Tour {
                     slide.action = "";
                     slide.action_label = "";
                 }
+                if (kf.has_key ("Slide", "SecondaryAction") && kf.has_key ("Slide", "SecondaryActionLabel")) {
+                    slide.secondary_action = kf.get_string ("Slide", "SecondaryAction");
+                    slide.secondary_label = kf.get_locale_string ("Slide", "SecondaryActionLabel", null);
+                }
+                if (kf.has_key ("Slide", "Group")) slide.group = kf.get_string ("Slide", "Group");
+                if (kf.has_key ("Slide", "Setup")) slide.setup = kf.get_string ("Slide", "Setup");
                 return slide;
             } catch (Error e) {
                 return null;

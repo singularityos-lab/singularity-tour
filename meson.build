@@ -29,8 +29,8 @@ resources = gnome.compile_resources(
 )
 
 executable('singularity-tour',
-  files('src/slides.vala', 'src/scene.vala', 'src/window.vala', 'src/app.vala') + [resources],
-  dependencies: [gtk_dep, gee_dep, pangocairo_dep, dependency('gio-unix-2.0'), libsingularity_dep, meson.get_compiler('c').find_library('m')],
+  files('src/slides.vala', 'src/scene.vala', 'src/agent_setup.vala', 'src/window.vala', 'src/app.vala') + [resources],
+  dependencies: [gtk_dep, gee_dep, pangocairo_dep, dependency('gio-unix-2.0'), dependency('json-glib-1.0'), libsingularity_dep, meson.get_compiler('c').find_library('m')],
   install: true
 )
 

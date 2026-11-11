@@ -142,6 +142,7 @@ namespace Singularity.Apps.Tour {
         private Gdk.Texture? texture = null;
         private Gdk.Paintable? icon = null;
         private double phase = 0;
+        private double clock = 0;
         private double bar_h = 20;
         private double dock_x = 195;
         private double dock_y = 354;
@@ -168,7 +169,8 @@ namespace Singularity.Apps.Tour {
                 var gtk = Gtk.Settings.get_default ();
                 if (gtk != null && !gtk.gtk_enable_animations) return;
                 tick = add_tick_callback ((w, clock) => {
-                    phase = (clock.get_frame_time () / 1000000.0) % 2.4 / 2.4;
+                    this.clock = clock.get_frame_time () / 1000000.0;
+                    phase = this.clock % 2.4 / 2.4;
                     queue_draw ();
                     return Source.CONTINUE;
                 });
@@ -278,6 +280,15 @@ namespace Singularity.Apps.Tour {
                 case "done":
                     glow_background (cr);
                     done (cr);
+                    break;
+                case "ai-off":
+                    ai_off (cr);
+                    break;
+                case "ai-desk":
+                    ai_desk (cr);
+                    break;
+                case "ai-reach":
+                    ai_reach (cr);
                     break;
                 case "assistant":
                     desktop (cr, "Notes");
@@ -485,7 +496,7 @@ namespace Singularity.Apps.Tour {
             cr.clip ();
             rgb (cr, 0xf5f5f7);
             cr.paint ();
-            double side = content == "write" ? 0 : double.min (110, w * 0.3);
+            double side = content == "write" || content == "blank" ? 0 : double.min (110, w * 0.3);
             if (side > 0) {
                 cr.rectangle (x, y, side, h);
                 rgb (cr, 0xe4e9f1);
@@ -995,6 +1006,401 @@ namespace Singularity.Apps.Tour {
             set_accent (cr, 1);
             cr.set_line_width (2.2);
             cr.stroke ();
+        }
+    
+        private const double STEP = 4.5;
+
+        private static double ease (double t) {
+            t = double.max (0, double.min (1, t));
+            return t * t * (3 - 2 * t);
+        }
+
+        private static double span (double t, double a, double b) {
+            return ease ((t - a) / (b - a));
+        }
+
+        private int vignette (out double t) {
+            double c = clock / STEP;
+            t = c - Math.floor (c);
+            return (int) Math.floor (c) % 3;
+        }
+
+        private void caption (Cairo.Context cr, string label, double t) {
+            double a = span (t, 0, 0.08) * (1 - span (t, 0.94, 1));
+            var layout = Pango.cairo_create_layout (cr);
+            var font = Pango.FontDescription.from_string ("Sans Bold");
+            font.set_absolute_size (10 * Pango.SCALE);
+            layout.set_font_description (font);
+            layout.set_text (label, -1);
+            int lw, lh;
+            layout.get_pixel_size (out lw, out lh);
+            double w = lw + 36;
+            rrect (cr, (W - w) / 2, 32, w, 24, 12);
+            rgb (cr, 0x16171b, 0.92 * a);
+            cr.fill ();
+            cr.arc ((W - w) / 2 + 14, 44, 3.5, 0, 2 * Math.PI);
+            set_accent (cr, a);
+            cr.fill ();
+            text (cr, label, W / 2 + 7, 44, 10, 0xffffff, 0.95 * a, true, true);
+        }
+
+        private void prompt (Cairo.Context cr, string s, double t, double y = 300) {
+            double a = 1 - span (t, 0.42, 0.52);
+            if (a <= 0) return;
+            int n = (int) (s.char_count () * span (t, 0.04, 0.3));
+            string shown = s.substring (0, s.index_of_nth_char (n));
+            double w = 300;
+            double x = (W - w) / 2;
+            rrect (cr, x + 2, y + 5, w, 34, 17);
+            rgb (cr, 0x000000, 0.3 * a);
+            cr.fill ();
+            rrect (cr, x, y, w, 34, 17);
+            rgb (cr, 0x1f2229, 0.97 * a);
+            cr.fill ();
+            cr.arc (x + 18, y + 17, 5, 0, 2 * Math.PI);
+            set_accent (cr, a);
+            cr.fill ();
+            text (cr, shown, x + 32, y + 17, 10, 0xffffff, 0.95 * a);
+            if (t < 0.32 && phase < 0.5) {
+                var layout = Pango.cairo_create_layout (cr);
+                var font = Pango.FontDescription.from_string ("Sans");
+                font.set_absolute_size (10 * Pango.SCALE);
+                layout.set_font_description (font);
+                layout.set_text (shown, -1);
+                int lw, lh;
+                layout.get_pixel_size (out lw, out lh);
+                cr.rectangle (x + 33 + lw, y + 10, 1.2, 14);
+                set_accent (cr, a);
+                cr.fill ();
+            }
+        }
+
+        private void ai_off (Cairo.Context cr) {
+            glow_background (cr);
+            double t = clock % 3.0 / 3.0;
+            double cx = 210, cy = 190;
+            rrect (cr, cx - 70, cy - 50, 140, 92, 10);
+            rgb (cr, 0x1c1d21);
+            cr.fill_preserve ();
+            rgb (cr, 0xffffff, 0.35);
+            cr.set_line_width (2);
+            cr.stroke ();
+            rrect (cr, cx - 30, cy + 46, 60, 6, 3);
+            rgb (cr, 0xffffff, 0.35);
+            cr.fill ();
+            rrect (cr, cx - 44, cy - 19, 88, 30, 15);
+            rgb (cr, 0xffffff, 0.08);
+            cr.fill ();
+            text (cr, "AI off", cx, cy - 4, 11, 0xffffff, 0.85, true, true);
+            double kx = 470, ky = cy - 10;
+            cr.arc (kx - 26, ky + 6, 22, 0, 2 * Math.PI);
+            cr.new_sub_path ();
+            cr.arc (kx + 2, ky - 8, 30, 0, 2 * Math.PI);
+            cr.new_sub_path ();
+            cr.arc (kx + 30, ky + 8, 20, 0, 2 * Math.PI);
+            cr.set_fill_rule (Cairo.FillRule.WINDING);
+            rgb (cr, 0x2a2c31);
+            cr.fill ();
+            text (cr, "Cloud", kx + 2, ky + 4, 10, 0xffffff, 0.5, true, true);
+            cr.set_dash ({ 4, 6 }, 0);
+            cr.move_to (cx + 76, cy - 4);
+            cr.line_to (330, cy - 4);
+            cr.move_to (366, cy - 4);
+            cr.line_to (kx - 54, cy - 4);
+            rgb (cr, 0xffffff, 0.25);
+            cr.set_line_width (2);
+            cr.stroke ();
+            cr.set_dash (null, 0);
+            for (int i = 0; i < 3; i++) {
+                double p = (t + i / 3.0) % 1.0;
+                double x = cx + 80 + p * 60;
+                double a = 1 - span (p, 0.55, 1);
+                cr.arc (x, cy - 4, 4, 0, 2 * Math.PI);
+                set_accent (cr, a);
+                cr.fill ();
+            }
+            cr.move_to (340, cy - 16);
+            cr.line_to (356, cy + 8);
+            cr.move_to (356, cy - 16);
+            cr.line_to (340, cy + 8);
+            rgb (cr, 0xffffff, 0.7);
+            cr.set_line_width (2.5);
+            cr.set_line_cap (Cairo.LineCap.ROUND);
+            cr.stroke ();
+            text (cr, "No model, no AI. Nothing leaves this computer.", W / 2, 320, 13, 0xffffff, 0.9, true, true);
+        }
+
+        private void ai_desk (Cairo.Context cr) {
+            double t;
+            int v = vignette (out t);
+            switch (v) {
+                case 0:
+                    desktop (cr, "Write");
+                    double open = span (t, 0.3, 0.45);
+                    if (open > 0) {
+                        cr.save ();
+                        double s = 0.85 + 0.15 * open;
+                        cr.translate (W / 2, 190);
+                        cr.scale (s, s);
+                        cr.translate (-W / 2, -190);
+                        cr.push_group ();
+                        window (cr, 150, 70, 340, 240, "blank");
+                        double lines = span (t, 0.5, 0.92);
+                        double[] widths = { 220, 270, 250, 180, 260, 120 };
+                        for (int i = 0; i < widths.length; i++) {
+                            double f = double.min (1, double.max (0, lines * widths.length - i));
+                            if (f <= 0) break;
+                            pill (cr, 176, 120 + i * 22, widths[i] * f, 7, 0x2a2c31, i == 0 ? 0.85 : 0.45);
+                        }
+                        cr.pop_group_to_source ();
+                        cr.paint_with_alpha (open);
+                        cr.restore ();
+                    }
+                    prompt (cr, "write a thank-you note to Anna", t);
+                    caption (cr, "Opens an app and writes", t);
+                    break;
+                case 1:
+                    desktop (cr, "Mail");
+                    mail_proposal (cr, t);
+                    caption (cr, "Tidies your mail, as a proposal", t);
+                    break;
+                default:
+                    desktop (cr, "Settings");
+                    setting_change (cr, t);
+                    prompt (cr, "use the dark style", t);
+                    caption (cr, "Changes a setting for you", t);
+                    break;
+            }
+        }
+
+        private void mail_proposal (Cairo.Context cr, double t) {
+            double x = 50, y = 70, w = 330, h = 250;
+            window (cr, x, y, w, h, "blank");
+            string[] from = { "Anna", "Weekly Deals", "Bank", "News Digest", "Shop Offers", "Marco" };
+            bool[] moves = { false, true, false, true, true, false };
+            double tint = span (t, 0.25, 0.45);
+            double gone = span (t, 0.7, 0.85);
+            double row_y = y + 40;
+            for (int i = 0; i < from.length; i++) {
+                double a = moves[i] ? 1 - gone : 1;
+                if (a > 0.01) {
+                    if (moves[i]) {
+                        rrect (cr, x + 10, row_y, w - 20, 30, 8);
+                        set_accent (cr, 0.18 * tint * a);
+                        cr.fill ();
+                    }
+                    cr.arc (x + 28, row_y + 15, 8, 0, 2 * Math.PI);
+                    rgb (cr, moves[i] ? 0x9aa0aa : 0x3a5bd6, a);
+                    cr.fill ();
+                    text (cr, from[i], x + 44, row_y + 10, 9, 0x1d1f24, 0.9 * a, true);
+                    pill (cr, x + 44, row_y + 19, 150, 5, 0x1d1f24, 0.3 * a);
+                }
+                row_y += moves[i] ? 34 * (1 - gone) : 34;
+            }
+            double card = span (t, 0.3, 0.45);
+            if (card <= 0) return;
+            double cx = 400 + 30 * (1 - card), cy = 110;
+            cr.push_group ();
+            rrect (cr, cx + 2, cy + 6, 200, 150, 14);
+            rgb (cr, 0x000000, 0.3);
+            cr.fill ();
+            rrect (cr, cx, cy, 200, 150, 14);
+            rgb (cr, 0x1f2229, 0.97);
+            cr.fill ();
+            text (cr, "Proposal", cx + 16, cy + 22, 9, 0xffffff, 0.55, true);
+            text (cr, "Move 3 offers to Later", cx + 16, cy + 44, 11, 0xffffff, 0.95, true);
+            text (cr, "Nothing moves until you say so", cx + 16, cy + 64, 9, 0xffffff, 0.6);
+            double press = span (t, 0.6, 0.66) * (1 - span (t, 0.66, 0.72));
+            rrect (cr, cx + 16, cy + 104, 78, 28, 14);
+            set_accent (cr, 1 - 0.3 * press);
+            cr.fill ();
+            text (cr, "Apply", cx + 55, cy + 118, 10, 0xffffff, 1, true, true);
+            rrect (cr, cx + 104, cy + 104, 80, 28, 14);
+            rgb (cr, 0xffffff, 0.12);
+            cr.fill ();
+            text (cr, "Not now", cx + 144, cy + 118, 10, 0xffffff, 0.9, true, true);
+            cr.pop_group_to_source ();
+            cr.paint_with_alpha (card);
+        }
+
+        private void setting_change (Cairo.Context cr, double t) {
+            double dark = span (t, 0.55, 0.7);
+            double x = 140, y = 70, w = 360, h = 200;
+            rrect (cr, x + 2, y + 6, w, h, 12);
+            rgb (cr, 0x000000, 0.35);
+            cr.fill ();
+            rrect (cr, x, y, w, h, 12);
+            double bg = 0.96 - 0.82 * dark;
+            cr.set_source_rgb (bg, bg, bg + 0.01);
+            cr.fill ();
+            uint fg = dark > 0.5 ? 0xffffff : 0x1d1f24;
+            double ink = dark > 0.5 ? 1 : 0;
+            text (cr, "Appearance", x + 24, y + 30, 13, fg, 0.9, true);
+            string[] rows = { "Dark Style", "Accent Color", "Wallpaper" };
+            for (int i = 0; i < rows.length; i++) {
+                double ry = y + 54 + i * 44;
+                rrect (cr, x + 16, ry, w - 32, 36, 9);
+                cr.set_source_rgba (ink, ink, ink, 0.06);
+                cr.fill ();
+                text (cr, rows[i], x + 30, ry + 18, 10, fg, 0.85, i == 0);
+            }
+            double sx = x + w - 70, sy = y + 62;
+            rrect (cr, sx, sy, 38, 20, 10);
+            rgb (cr, 0x9aa0aa);
+            cr.fill ();
+            if (dark > 0) {
+                rrect (cr, sx, sy, 38, 20, 10);
+                set_accent (cr, dark);
+                cr.fill ();
+            }
+            cr.arc (sx + 10 + 18 * dark, sy + 10, 8, 0, 2 * Math.PI);
+            rgb (cr, 0xffffff);
+            cr.fill ();
+            double ring = span (t, 0.48, 0.56) * (1 - span (t, 0.7, 0.8));
+            if (ring > 0) {
+                rrect (cr, sx - 6, sy - 6, 50, 32, 16);
+                set_accent (cr, ring);
+                cr.set_line_width (2.5);
+                cr.stroke ();
+            }
+        }
+
+        private void ai_reach (Cairo.Context cr) {
+            double t;
+            int v = vignette (out t);
+            switch (v) {
+                case 0:
+                    two_screens (cr, t);
+                    caption (cr, "Moves windows between screens", t);
+                    break;
+                case 1:
+                    desktop (cr, "Photos");
+                    window (cr, 70, 50, 380, 250, "files");
+                    background_task (cr, t);
+                    caption (cr, "Keeps working in the background", t);
+                    break;
+                default:
+                    glow_background (cr);
+                    phone_reply (cr, t);
+                    caption (cr, "Answers you on your phone", t);
+                    break;
+            }
+        }
+
+        private void screen (Cairo.Context cr, double x, double y, double w, double h) {
+            rrect (cr, x - 6, y - 6, w + 12, h + 12, 12);
+            rgb (cr, 0x2a2c31);
+            cr.fill ();
+            cr.save ();
+            rrect (cr, x, y, w, h, 6);
+            cr.clip ();
+            cr.translate (x, y);
+            cr.scale (w / W, h / H);
+            var real = RealDesktop.get_default ();
+            if (real.wallpaper != null) {
+                cr.scale (W / 1280.0, H / 800.0);
+                cr.set_source_surface (real.wallpaper, 0, 0);
+                cr.paint ();
+            } else {
+                desktop_background (cr);
+            }
+            cr.restore ();
+            rrect (cr, x + w / 2 - 20, y + h + 6, 40, 16, 3);
+            rgb (cr, 0x2a2c31);
+            cr.fill ();
+        }
+
+        private void two_screens (Cairo.Context cr, double t) {
+            glow_background (cr);
+            screen (cr, 40, 100, 260, 165);
+            screen (cr, 340, 100, 260, 165);
+            double m = span (t, 0.45, 0.8);
+            double wx = 70 + 300 * m;
+            double lift = Math.sin (m * Math.PI) * 14;
+            window (cr, wx, 125 - lift, 200, 115, "files");
+            prompt (cr, "put Files on the other screen", t, 318);
+        }
+
+        private void background_task (Cairo.Context cr, double t) {
+            double p = span (t, 0.1, 0.8);
+            double x = 380, y = 230, w = 230;
+            rrect (cr, x + 2, y + 6, w, 70, 14);
+            rgb (cr, 0x000000, 0.3);
+            cr.fill ();
+            rrect (cr, x, y, w, 70, 14);
+            rgb (cr, 0x1f2229, 0.97);
+            cr.fill ();
+            cr.arc (x + 20, y + 22, 5, 0, 2 * Math.PI);
+            set_accent (cr, 1);
+            cr.fill ();
+            int done = (int) Math.round (12 * p);
+            string label = done >= 12 ? "Photos sorted into 4 albums" : "Sorting photos, %d of 12".printf (done);
+            text (cr, label, x + 34, y + 22, 10, 0xffffff, 0.95, true);
+            rrect (cr, x + 16, y + 44, w - 32, 8, 4);
+            rgb (cr, 0xffffff, 0.12);
+            cr.fill ();
+            if (p > 0) {
+                rrect (cr, x + 16, y + 44, (w - 32) * p, 8, 4);
+                set_accent (cr, 1);
+                cr.fill ();
+            }
+        }
+
+        private void phone_reply (Cairo.Context cr, double t) {
+            double lx = 70, ly = 120;
+            rrect (cr, lx, ly, 200, 125, 8);
+            rgb (cr, 0x1c1d21);
+            cr.fill_preserve ();
+            rgb (cr, 0xffffff, 0.3);
+            cr.set_line_width (2);
+            cr.stroke ();
+            rrect (cr, lx - 16, ly + 125, 232, 10, 4);
+            rgb (cr, 0xffffff, 0.3);
+            cr.fill ();
+            text (cr, "Backup", lx + 100, ly + 50, 11, 0xffffff, 0.85, true, true);
+            double p = span (t, 0.4, 0.6);
+            rrect (cr, lx + 40, ly + 70, 120, 6, 3);
+            rgb (cr, 0xffffff, 0.12);
+            cr.fill ();
+            rrect (cr, lx + 40, ly + 70, 120 * (0.7 + 0.3 * p), 6, 3);
+            set_accent (cr, 1);
+            cr.fill ();
+            for (int i = 0; i < 3; i++) {
+                double q = (clock * 0.7 + i / 3.0) % 1.0;
+                cr.arc (300 + q * 90, 190, 3, 0, 2 * Math.PI);
+                set_accent (cr, Math.sin (q * Math.PI));
+                cr.fill ();
+            }
+            double px = 420, py = 70, pw = 150, ph = 280;
+            rrect (cr, px, py, pw, ph, 22);
+            rgb (cr, 0x0b0c0e);
+            cr.fill_preserve ();
+            rgb (cr, 0xffffff, 0.3);
+            cr.set_line_width (2);
+            cr.stroke ();
+            text (cr, "Sinty AI", px + pw / 2, py + 26, 10, 0xffffff, 0.85, true, true);
+            double q1 = span (t, 0.08, 0.16);
+            if (q1 > 0) {
+                rrect (cr, px + 36, py + 50, 102, 40, 12);
+                set_accent (cr, q1);
+                cr.fill ();
+                text (cr, "Is the backup", px + 46, py + 63, 9, 0xffffff, q1);
+                text (cr, "done yet?", px + 46, py + 77, 9, 0xffffff, q1);
+            }
+            double q2 = span (t, 0.62, 0.7);
+            if (q2 > 0) {
+                rrect (cr, px + 12, py + 102, 110, 40, 12);
+                rgb (cr, 0x2e323a, q2);
+                cr.fill ();
+                text (cr, "Yes, it finished", px + 22, py + 115, 9, 0xffffff, q2);
+                text (cr, "a minute ago.", px + 22, py + 129, 9, 0xffffff, q2);
+            } else if (t > 0.2) {
+                for (int i = 0; i < 3; i++) {
+                    cr.arc (px + 28 + i * 10, py + 120, 3, 0, 2 * Math.PI);
+                    rgb (cr, 0xffffff, 0.3 + 0.6 * (0.5 + 0.5 * Math.sin (clock * 6 - i)));
+                    cr.fill ();
+                }
+            }
         }
     }
 }
