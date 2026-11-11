@@ -95,7 +95,7 @@ namespace Singularity.Apps.Tour {
             login_row.subtitle = p == "codex"
                 ? _("Codex uses your own login. Sign in once in its program.")
                 : _("Claude Code uses your own login. Sign in once in its program.");
-            model_row.placeholder_text = p == "local" ? "llama3.2" : (p == "ollama" ? "gpt-oss:120b" : "claude-sonnet-5-5");
+            model_row.placeholder_text = p == "local" ? _("Built-in model") : (p == "ollama" ? "gpt-oss:120b" : "claude-sonnet-5-5");
             reset ();
         }
 
@@ -131,7 +131,7 @@ namespace Singularity.Apps.Tour {
         public async void check () {
             string p = provider ();
             string m = model_row.visible ? model_row.text.strip () : "";
-            if (m == "" && model_row.visible) m = model_row.placeholder_text;
+            if (m == "" && model_row.visible && p != "local") m = model_row.placeholder_text;
             if (key_row.visible) {
                 string key = key_row.text.strip ();
                 if (key == "") {
@@ -219,7 +219,11 @@ namespace Singularity.Apps.Tour {
         }
 
         public void commit () {
-            if (verified) save (provider (), model_row.visible ? (model_row.text.strip () != "" ? model_row.text.strip () : model_row.placeholder_text) : "");
+            if (!verified) return;
+            string p = provider ();
+            string m = model_row.visible ? model_row.text.strip () : "";
+            if (m == "" && model_row.visible && p != "local") m = model_row.placeholder_text;
+            save (p, m);
         }
     }
 }
