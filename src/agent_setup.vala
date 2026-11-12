@@ -79,7 +79,39 @@ namespace Singularity.Apps.Tour {
             behaviour.add_row (background_row);
             append (behaviour);
 
+            load ();
             provider_changed ();
+            mode_row.selected.connect (() => kept_mode = null);
+        }
+
+        private string? kept_mode = null;
+
+        private void load () {
+            Json.Object root;
+            try {
+                var parser = new Json.Parser ();
+                parser.load_from_file (config_path ());
+                if (parser.get_root () == null || parser.get_root ().get_node_type () != Json.NodeType.OBJECT) return;
+                root = parser.get_root ().get_object ();
+            } catch (Error e) {
+                return;
+            }
+            string p = root.get_string_member_with_default ("provider", "");
+            for (int i = 0; i < IDS.length; i++) {
+                if (IDS[i] == p) provider_row.current_value = provider_names ()[i];
+            }
+            model_row.text = root.get_string_member_with_default ("model", "");
+            string m = root.get_string_member_with_default ("mode", "");
+            bool known = false;
+            for (int i = 0; i < MODES.length; i++) {
+                if (MODES[i] == m) {
+                    mode_row.current_value = mode_names ()[i];
+                    known = true;
+                }
+            }
+            if (!known && m != "") kept_mode = m;
+            voice_row.switch_btn.active = root.get_boolean_member_with_default ("voice", true);
+            background_row.switch_btn.active = root.get_boolean_member_with_default ("background", false);
         }
 
         private string provider () {
@@ -202,7 +234,7 @@ namespace Singularity.Apps.Tour {
             root.set_string_member ("model", m);
             if (!root.has_member ("endpoint")) root.set_string_member ("endpoint", "");
             int mi = mode_row.selected_index;
-            root.set_string_member ("mode", mi >= 0 && mi < MODES.length ? MODES[mi] : "ask");
+            root.set_string_member ("mode", kept_mode ?? (mi >= 0 && mi < MODES.length ? MODES[mi] : "ask"));
             root.set_boolean_member ("voice", voice_row.switch_btn.active);
             root.set_boolean_member ("background", background_row.switch_btn.active);
             var node = new Json.Node (Json.NodeType.OBJECT);
