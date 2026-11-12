@@ -24,11 +24,11 @@ namespace Singularity.Apps.Tour {
         private Cancellable? running = null;
 
         private static string[] provider_names () {
-            return { _("On This Computer"), _("Claude Code"), _("Claude API"), _("Codex"), _("Ollama Cloud") };
+            return { _("This Computer"), _("Claude Code"), _("Claude API"), _("Codex"), _("Ollama Cloud") };
         }
 
         private static string[] mode_names () {
-            return { _("Suggest Only"), _("Ask Before Lasting Changes"), _("Act on Its Own") };
+            return { _("Plan"), _("Ask First"), _("Automatic") };
         }
 
         public static string config_path () {
@@ -39,7 +39,7 @@ namespace Singularity.Apps.Tour {
             Object (orientation: Orientation.VERTICAL, spacing: 18);
 
             var model = new PreferencesGroup (_("Model"),
-                _("Nothing leaves this computer until you choose a model. On This Computer keeps everything here."));
+                _("Nothing leaves this computer until you choose a model. This Computer keeps everything here."));
             provider_row = new SelectionRow (_("Provider"), provider_names (), provider_names ()[0]);
             provider_row.selected.connect (() => provider_changed ());
             model.add_row (provider_row);
@@ -67,10 +67,10 @@ namespace Singularity.Apps.Tour {
             model.add_row (check_row);
             append (model);
 
-            var behaviour = new PreferencesGroup (_("Behaviour"), null);
+            var behaviour = new PreferencesGroup (_("Behaviour"), _("Plan only reads and suggests. Ask First asks before lasting changes. Automatic asks only before what cannot be undone."));
             mode_row = new SelectionRow (_("Mode"), mode_names (), mode_names ()[1]);
             behaviour.add_row (mode_row);
-            var keys_row = new ActionRow (_("Ask"), _("Super+A to type, Super+Shift+A to talk"));
+            var keys_row = new ActionRow (_("Shortcuts"), _("Super+A to type, Super+Shift+A to talk"));
             behaviour.add_row (keys_row);
             voice_row = new SwitchRow (_("Voice"), _("Listen while Super+Shift+A is held"), true);
             behaviour.add_row (voice_row);
