@@ -6,5 +6,6 @@ Icon=dev.sinty.tour
 Terminal=false
 Type=Application
 Categories=Utility;
+X-Sinty-FormFactors=desktop;tablet;phone;tv
 Keywords=welcome;introduction;guide;tutorial;first;
 StartupWMClass=dev.sinty.tour
