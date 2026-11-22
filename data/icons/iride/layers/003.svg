@@ -1,0 +1,3 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="236" viewBox="0 0 236 236" fill="none"><defs><linearGradient id="pole_t" x1="108" y1="24" x2="128" y2="214" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#d6a064" /><stop offset="100%" stop-color="#8a5a2b" /></linearGradient>
+</defs><path d="M108 30 Q108 24 114 24 L122 24 Q128 24 128 30 L128 214 L108 214 Z" fill="url(#pole_t)" />
+</svg>

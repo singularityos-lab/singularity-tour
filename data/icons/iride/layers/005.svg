@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="236" height="236" viewBox="0 0 236 236" fill="none"><defs><filter id="sh_t" x="0" y="0" width="236" height="236" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000000" flood-opacity="0.45" /></filter>
+<linearGradient id="b1_t" x1="50" y1="44" x2="204" y2="104" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#a78bfa" /><stop offset="100%" stop-color="#6d28d9" /></linearGradient>
+</defs><path d="M58 44 L168 44 Q174 44 178 48 L200 70 Q204 74 200 78 L178 100 Q174 104 168 104 L58 104 Q50 104 50 96 L50 52 Q50 44 58 44 Z" fill="url(#b1_t)" filter="url(#sh_t)" />
+</svg>
