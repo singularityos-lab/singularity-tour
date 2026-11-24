@@ -2,7 +2,7 @@ using Gtk;
 
 namespace Singularity.Apps.Tour {
 
-    public class TourApp : Singularity.Application {
+    public class TourApp : Singularity.Application, Singularity.Startup.Bootable {
 
         public TourApp () {
             Object (application_id: "dev.sinty.tour", flags: ApplicationFlags.DEFAULT_FLAGS);
@@ -69,7 +69,30 @@ namespace Singularity.Apps.Tour {
             set_accels_for_action ("win.next", { "Right", "Page_Down" });
         }
 
-        public override void activate () {
+        public Singularity.Startup.Plan build_plan (Singularity.Startup.Request request) {
+            var plan = new Singularity.Startup.Plan ();
+            plan.version = "tour-1";
+            if (request.kind == Singularity.Startup.RequestKind.SERVICE) {
+                plan.main ("ready", Singularity.Startup.Category.PREPARE, (c) => {})
+                    .reaches (Singularity.Startup.Milestone.SHELL_READY)
+                    .reaches (Singularity.Startup.Milestone.CONTENT_READY)
+                    .reaches (Singularity.Startup.Milestone.INTERACTIVE);
+                return plan;
+            }
+            plan.main ("window", Singularity.Startup.Category.SHELL, (c) => {
+                show_window ();
+                c.window = get_active_window ();
+            }).reaches (Singularity.Startup.Milestone.SHELL_READY)
+              .reaches (Singularity.Startup.Milestone.CONTENT_READY)
+              .reaches (Singularity.Startup.Milestone.INTERACTIVE);
+            return plan;
+        }
+
+        public void handle_request (Singularity.Startup.Request request) {
+            show_window ();
+        }
+
+        private void show_window () {
             ensure_window ();
         }
 
